@@ -2,7 +2,8 @@ package ru.tolsi.blockchain.pow
 
 import com.typesafe.scalalogging.StrictLogging
 import monix.eval.Task
-import ru.tolsi.blockchain.{Blockchain, ValidationException}
+import ru.tolsi.blockchain.{Blockchain, ByteStr, ValidationException}
+import scorex.crypto.hash.Blake2b256
 
 import scala.concurrent.duration.{Duration, FiniteDuration}
 
@@ -10,10 +11,10 @@ object PowBlockchain extends StrictLogging {
   def newDifficulty(oldDifficulty: Int, lastBlockTime: Long, currentTime: Long, targetBlockFrequency: FiniteDuration): Int = {
     val timeDiff = currentTime - lastBlockTime
     val timesRelativelyTarget = timeDiff.toDouble / targetBlockFrequency.toMillis
-    val newValue = if (timesRelativelyTarget > 1.2) {
+    val newValue = if (timesRelativelyTarget > 1.05) {
       oldDifficulty - 1
     } else {
-      if (timesRelativelyTarget < 0.8) {
+      if (timesRelativelyTarget < 0.95) {
         oldDifficulty + 1
       } else {
         oldDifficulty
@@ -48,9 +49,10 @@ case class PowBlockchain(override val blocks: Seq[PowBlock], targetBlockFrequenc
   override def validate(block: PowBlock): Either[ValidationException, PowBlock] = {
     val lastBlock = blocks.last
     for {
-      r1 <- Either.cond(block.hash.arr.takeWhile(_ == 0).length >= block.difficulty, block, ValidationException("Hash not suitable for given complexity"))
-      r2 <- Either.cond(PowBlockchain.newDifficulty(lastBlock.difficulty, lastBlock.ts, block.ts, targetBlockFrequency) == block.difficulty, r1, ValidationException("New difficulty is wrong"))
-    } yield r2
+      _ <- Either.cond(block.hash.arr.takeWhile(_ == 0).length >= block.difficulty, block, ValidationException("Hash not suitable for given complexity"))
+      _ <- Either.cond(block.hash == ByteStr(Blake2b256.hash(block.innerBytes.arr)), block, ValidationException("Hash not suitable for given complexity"))
+      _ <- Either.cond(PowBlockchain.newDifficulty(lastBlock.difficulty, lastBlock.ts, block.ts, targetBlockFrequency) == block.difficulty, block, ValidationException("New difficulty is wrong"))
+    } yield block
   }
 
   override def toString: String = s"PowBC[Last block: ${blocks.last}, total: ${blocks.size}]"
