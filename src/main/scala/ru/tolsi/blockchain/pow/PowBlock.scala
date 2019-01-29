@@ -9,11 +9,11 @@ import scorex.crypto.hash.Blake2b256
 
 object PowBlock {
   val Genesis = PowBlock(ByteStr(Array.fill(32)(0)), 0, System.currentTimeMillis(), 0)
-  private val timePrintFormat = new SimpleDateFormat("hh:mm:ss")
+  private val timePrintFormat = new SimpleDateFormat("HH:mm:ss")
 }
 case class PowBlock(override val parentHash: ByteStr, nonce: Long, ts: Long, difficulty: Int) extends Block {
   import PowBlock._
   def hash: ByteStr = ByteStr(Blake2b256.hash(innerBytes.arr))
   override def innerBytes: ByteStr = ByteStr(parentHash.arr ++ Longs.toByteArray(nonce) ++ Longs.toByteArray(ts) ++ Ints.toByteArray(difficulty))
-  override def toString: String = s"POW [${hash.toString.take(6)}..., nonce: $nonce, time: ${timePrintFormat.format(new Date(ts))}, diff: $difficulty]"
+  override def toString: String = s"POWBlock[${hash.toString.take(6)}..., nonce: $nonce, time: ${timePrintFormat.format(new Date(ts))}, diff: $difficulty]"
 }

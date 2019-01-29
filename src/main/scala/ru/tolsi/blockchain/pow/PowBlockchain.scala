@@ -52,4 +52,6 @@ case class PowBlockchain(override val blocks: Seq[PowBlock], targetBlockFrequenc
       r2 <- Either.cond(PowBlockchain.newDifficulty(lastBlock.difficulty, lastBlock.ts, block.ts, targetBlockFrequency) == block.difficulty, r1, ValidationException("New difficulty is wrong"))
     } yield r2
   }
+
+  override def toString: String = s"PowBC[Last block: ${blocks.last}, total: ${blocks.size}]"
 }

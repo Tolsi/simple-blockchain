@@ -8,6 +8,7 @@ import scala.concurrent.duration._
 object PowTestApp extends App with StrictLogging {
   val genesis = PowBlock.Genesis
   val startBlockchain = PowBlockchain(Seq(genesis), 10.seconds)
+  logger.info(s"Start from $startBlockchain")
   val miner = new PowMiner
   miner.minerTask(startBlockchain).runAsyncAndForget
   miner.blocksSubject.foreach(bc => logger.info(bc.toString))
