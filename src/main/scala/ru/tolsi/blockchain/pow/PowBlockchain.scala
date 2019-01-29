@@ -50,10 +50,10 @@ case class PowBlockchain(override val blocks: Seq[PowBlock], targetBlockFrequenc
     val lastBlock = blocks.last
     for {
       _ <- Either.cond(block.hash.arr.takeWhile(_ == 0).length >= block.difficulty, block, ValidationException("Hash not suitable for given complexity"))
-      _ <- Either.cond(block.hash == ByteStr(Blake2b256.hash(block.innerBytes.arr)), block, ValidationException("Hash not suitable for given complexity"))
+      _ <- Either.cond(block.hash == ByteStr(Blake2b256.hash(block.hashBytes.arr)), block, ValidationException("Hash not suitable for given complexity"))
       _ <- Either.cond(PowBlockchain.newDifficulty(lastBlock.difficulty, lastBlock.ts, block.ts, targetBlockFrequency) == block.difficulty, block, ValidationException("New difficulty is wrong"))
     } yield block
   }
 
-  override def toString: String = s"PowBC[Last block: ${blocks.last}, total: ${blocks.size}]"
+  override def toString: String = s"PoWBC[Last block: ${blocks.last}, total: ${blocks.size}]"
 }
